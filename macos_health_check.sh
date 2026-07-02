@@ -3,9 +3,12 @@
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Extract clean short hostname without any trailing ".local" or domain info
+SHORT_HOSTNAME=$(hostname -s)
+
 # Generate a unique timestamp for the file name (Format: YearMonthDay_HourMinuteSecond)
 TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
-LOG_FILE="${SCRIPT_DIR}/macos_health_check_status_${TIMESTAMP}.log"
+LOG_FILE="${SCRIPT_DIR}/macos_health_check_status_${SHORT_HOSTNAME}_${TIMESTAMP}.log"
 
 # Automatically duplicate all stdout and stderr to the unique log file while displaying it on screen
 exec > >(tee "$LOG_FILE") 2>&1
@@ -15,22 +18,26 @@ echo "  Mac OS SYSTEM STATUS & DIAGNOSTICS     "
 echo "  Logged: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "========================================="
 
-# 1. Hostname
-echo -e "Hostname:\t$(hostname)"
+# 1. Hostname (Cleaned up version)
+echo -e "Hostname:\t$SHORT_HOSTNAME"
 
-# 2. Uptime & Recommendation Logic
+# 2. Uptime & Tiered Recommendation Logic
 UPTIME_RAW=$(uptime)
 echo -e "Uptime:\t\t$(echo "$UPTIME_RAW" | sed 's/.*up \([^,]*\), .*/\1/')"
 
 if [[ "$UPTIME_RAW" == *"day"* ]]; then
+    # Extract the total running days as a pure integer
     DAYS_UP=$(echo "$UPTIME_RAW" | awk -F'up ' '{print $2}' | awk '{print $1}')
-    if [ "$DAYS_UP" -ge 7 ]; then
-        echo -e "\033[0;31mUptime Rec:\t[!] It is highly recommended to RESTART your laptop. Long uptime (>7 days) causes network glitches and file search index errors.\033[0m"
+    
+    if [ "$DAYS_UP" -gt 14 ]; then
+        echo -e "\033[0;31mUptime Rec:\t[CRITICAL] Laptop has been running for over 2 weeks ($DAYS_UP days). Critical system tasks are backed up. REBOOT IMMEDIATELY.\033[0m"
+    elif [ "$DAYS_UP" -ge 7 ] && [ "$DAYS_UP" -le 14 ]; then
+        echo -e "\033[0;33mUptime Rec:\t[WARNING] Uptime is between 7 and 14 days ($DAYS_UP days). Background memory allocations are climbing. Consider scheduling a restart soon.\033[0m"
     else
-        echo -e "\033[0;32mUptime Rec:\t[✓] System uptime is okay (Less than a week).\033[0m"
+        echo -e "\033[0;32mUptime Rec:\t[✓] System uptime is healthy ($DAYS_UP days). Less than a week.\033[0m"
     fi
 else
-    echo -e "\033[0;32mUptime Rec:\t[✓] System uptime is okay (Less than a week).\033[0m"
+    echo -e "\033[0;32mUptime Rec:\t[✓] System uptime is healthy (Less than 24 hours/a week).\033[0m"
 fi
 
 echo "----------------------------------------"
