@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Generate a unique timestamp for the file name (Format: YearMonthDay_HourMinuteSecond)
 TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
-LOG_FILE="${SCRIPT_DIR}/system_status_${TIMESTAMP}.log"
+LOG_FILE="${SCRIPT_DIR}/macos_health_check_status_${TIMESTAMP}.log"
 
 # Automatically duplicate all stdout and stderr to the unique log file while displaying it on screen
 exec > >(tee "$LOG_FILE") 2>&1
