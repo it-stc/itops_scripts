@@ -4,7 +4,7 @@ A centralized repository of production-ready IT Operations and Systems Administr
 
 ## 🚀 Featured Scripts
 
-### 📊 `macos_health_check.sh` — macOS System & Network Diagnostics
+### `macos_health_check.sh` — macOS System & Network Diagnostics
 A robust shell script designed to give an instant operational snapshot of a macOS system. It identifies potential performance bottlenecks and local network stability problems dynamically.
 
 * **Smart Uptime Checks:** Flags uptimes exceeding 7 days and recommends a proactive reboot to avoid OS degradation.
